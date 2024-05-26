@@ -94,7 +94,7 @@
     - name: Download maps
       ansible.builtin.get_url:
         url: "{{ fast_dl }}/{{ item }}.bz2"
-        dest: "/tmp/{{ item }}.bsp"
+        dest: "/tmp"
         mode: '0600'
       loop: "{{ map_pool }}"
 
@@ -115,6 +115,25 @@
         path: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/{{ item }}"
         state: absent
       loop: "{{ disabled_addons }}"
+
+    - name: Download chat fix
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/bauxiteDYS/SM-DYS-SayFix/Test/scripting/dys_sayfix.sp
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting"
+        mode: '0600'
+
+    - name: Compile chat fix
+      ansible.builtin.shell:
+        executable: /bin/bash
+        chdir: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting"
+        cmd: ./compile.sh dys_sayfix.sp
+
+    - name: Copy dys_sayfix
+      ansible.builtin.copy:
+        remote_src: true
+        src: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting/compiled/dys_sayfix.smx"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+        mode: '0600'
 
 # ! TODO: Install sourcemods (devbranch)
 # ! TODO: Install overlayplugin wiuth deps
