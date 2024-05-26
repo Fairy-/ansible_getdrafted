@@ -1,0 +1,33 @@
+getdrafted:
+  hosts:
+    eu.getdrafted.net:
+      ansible_user: azureuser
+      server_region: EU
+    us.getdrafted.net:
+      ansible_user: azureuser
+      server_region: US
+  vars:
+    fast_dl: "http://dys.fastdl.ragetroops.eu/maps"
+    map_pool:
+      - dys_vaccine_compd.bsp
+      - dys_detonate_compi.bsp
+      - dys_cybernetic_compd.bsp
+      - dys_fortress_compb.bsp
+    disabled_addons:
+      - admin-flatfile.smx
+      - adminhelp.smx
+      - adminmenu.smx
+      - antiflood.smx
+      - basebans.smx
+      - basechat.smx
+      - basecomm.smx
+      - basecommands.smx
+      - basetriggers.smx
+      - basevotes.smx
+      - clientprefs.smx
+      - funcommands.smx
+      - funvotes.smx
+      - nextmap.smx
+      - playercommands.smx
+      - reservedslots.smx
+      - sounds.smx

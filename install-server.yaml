@@ -1,0 +1,138 @@
+---
+- name: Install and configure game servers
+  hosts: getdrafted
+  vars_files:
+    - vars/secret.yaml
+  roles:
+    - compscidr.uncompress
+  tasks:
+    - name: Download linuxgsm.sh
+      ansible.builtin.get_url:
+        url: https://linuxgsm.sh
+        dest: /home/{{ ansible_user }}/linuxgsm.sh
+        mode: '0700'
+
+    - name: Check if i386 is enabled
+      ansible.builtin.shell:
+        executable: /bin/bash
+        cmd: |
+          set -o pipefail
+          dpkg --print-foreign-architectures | grep i386
+      register: result_i386_check
+      changed_when: result_i386_check.rc == 1
+      failed_when: result_i386_check.rc > 1
+
+    - name: Enable i386 architecture
+      become: true
+      ansible.builtin.command: dpkg --add-architecture i386
+      when: result_i386_check.rc == 1
+
+    - name: Accept steam license for steamcmd
+      become: true
+      ansible.builtin.debconf:
+        name: "steam"
+        question: "steam/question"
+        value: "I AGREE"
+        vtype: "select"
+
+    - name: Install dependecies for lgsm
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        package:
+          - curl
+          - wget
+          - file
+          - tar
+          - bzip2
+          - gzip
+          - unzip
+          - bsdmainutils
+          - python3
+          - util-linux
+          - ca-certificates
+          - binutils
+          - bc
+          - jq
+          - tmux
+          - netcat
+          - lib32gcc-s1
+          - lib32stdc++6
+          - libsdl2-2.0-0:i386
+          - steamcmd
+
+    - name: Check if lgsm exists
+      ansible.builtin.stat:
+        path: "/home/{{ ansible_user }}/dysserver"
+      register: dysserver_stat
+
+    - name: Install lgsm
+      when: not dysserver_stat.stat.exists
+      ansible.builtin.shell:
+        executable: /bin/bash
+        chdir: "/home/{{ ansible_user }}"
+        cmd: ./linuxgsm.sh dysserver
+
+    - name: Check if dysserver exists
+      ansible.builtin.stat:
+        path: "/home/{{ ansible_user }}/serverfiles/bin/srcds_run.sh"
+      register: srcds_stat
+
+    - name: Install dysserver
+      when: not srcds_stat.stat.exists
+      ansible.builtin.shell:
+        executable: /bin/bash
+        chdir: "/home/{{ ansible_user }}"
+        cmd: ./dysserver auto-install
+
+    - name: Set server configuration
+      ansible.builtin.template:
+        src: dysserver.cfg.j2
+        dest: /home/{{ ansible_user }}/serverfiles/dystopia/cfg/dysserver.cfg
+        mode: '0600'
+
+    - name: Download maps
+      ansible.builtin.get_url:
+        url: "{{ fast_dl }}/{{ item }}.bz2"
+        dest: "/tmp/{{ item }}.bsp"
+        mode: '0600'
+      loop: "{{ map_pool }}"
+
+    - name: Uncompress file
+      uncompress:
+        src: "/tmp/{{ item }}.bz2"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/maps/{{ item }}"
+        mode: '0775'
+      loop: "{{ map_pool }}"
+
+    - name: Set up cronjob for server restarts
+      ansible.builtin.cron:
+        name: "Check server health"
+        job: "/home/{{ ansible_user }}/dysserver monitor"
+
+    - name: Remove unused addons
+      ansible.builtin.file:
+        path: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/{{ item }}"
+        state: absent
+      loop: "{{ disabled_addons }}"
+
+# ! TODO: Install sourcemods (devbranch)
+# ! TODO: Install overlayplugin wiuth deps
+#
+#    - name: Install overlay addon
+#      ansible.builtin.get_url:
+#        url: https://github.com/VantoNortim/DystopiaStreamOverlay/blob/master/Plugin/Compiled/dys_overlay.smx
+#        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+#        mode: '0600'
+
+#    - name: Install overlay websocket plugin
+#      ansible.builtin.get_url:
+#        url: https://forums.alliedmods.net/attachment.php?attachmentid=110278&d=1484276192
+#        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+#        mode: '0600'
+
+#    - name: Install socket extension
+#      ansible.builtin.unarchive:
+#        src: https://forums.alliedmods.net/attachment.php?attachmentid=83286?attachmentid=83286
+#        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/"
+#        remote_src: true'
