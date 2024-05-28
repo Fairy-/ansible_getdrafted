@@ -136,22 +136,31 @@
         mode: '0600'
 
     - name: Copy the competitive overlay plugin to the server
-      ansible.builtin.file:
+      ansible.builtin.copy:
         src: files/dys_overlay.smx
-        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/dys_overlay.smx"
         mode: '0600'
 
     - name: Copy the websocket plugin to the server
-      ansible.builtin.file:
+      ansible.builtin.copy:
         src: files/websocket.smx
-        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/websocket.smx"
         mode: '0600'
+        state: file
 
     - name: Copy the competitive overlay plugin to the server
-      ansible.builtin.file:
+      ansible.builtin.copy:
         src: files/socket.ext.so
-        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/extensions/"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/extensions/socket.ext.so"
         mode: '0600'
+        state: file
+
+    - name: Setup overlay configuration
+      ansible.builtin.template:
+        src: dys_overlay.cfg.j2
+        dest: /home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/configs/dys_overlay.cfg
+        mode: '0600'
+
 
 
 # ! TODO: Install sourcemods (devbranch)
