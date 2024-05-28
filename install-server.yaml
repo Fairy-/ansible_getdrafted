@@ -122,16 +122,31 @@
         dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting"
         mode: '0600'
 
-    - name: Compile chat fix
+    - name: Download AR nerf
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/bauxiteDYS/SM-DYS-AR-Nerf/main/scripting/dys_ar_nerf.sp
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting"
+        mode: '0600'
+
+    - name: Compile plugins
       ansible.builtin.shell:
         executable: /bin/bash
         chdir: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting"
-        cmd: ./compile.sh dys_sayfix.sp
+        cmd: |
+          ./compile.sh dys_sayfix.sp
+          ./compile.sh dys_ar_nerf.sp
 
     - name: Copy dys_sayfix
       ansible.builtin.copy:
         remote_src: true
         src: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting/compiled/dys_sayfix.smx"
+        dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
+        mode: '0600'
+
+    - name: Copy AR nerf
+      ansible.builtin.copy:
+        remote_src: true
+        src: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/scripting/compiled/dys_ar_nerf.smx"
         dest: "/home/{{ ansible_user }}/serverfiles/dystopia/addons/sourcemod/plugins/"
         mode: '0600'
 
