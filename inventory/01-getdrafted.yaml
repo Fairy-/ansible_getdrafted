@@ -9,7 +9,7 @@ getdrafted:
   vars:
     fast_dl: "http://dys.fastdl.ragetroops.eu/maps"
     map_pool:
-      - dys_infect_fixed.bsp
+      - dys_infect_fix.bsp
       - dys_detonate_compi.bsp
       - dys_cybernetic_compd.bsp
       - dys_fortress_compb.bsp
